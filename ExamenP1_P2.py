@@ -76,41 +76,53 @@ class CalificacionesTxt:
     def __init__(self):
         self.calificaciones = []
         self.cargar_calificaciones()
-
     def cargar_calificaciones(self):
-        try:
-            with open("calificaciones.txt", "r", encoding="utf-8") as archivo:
-                for linea in archivo:
-                    linea = linea.strip()
-                    if linea:
-                        cultura, proyeccion, entrevista = linea.split(":")
-                        self.calificaciones.append({
-                            "Cultura": cultura,
-                            "Proyeccion": proyeccion,
-                            "Entrevista": entrevista
-                        })
-            print("Calificaciones importadas desde calificaciones.txt")
-        except FileNotFoundError:
-            print("No existe el archivo calificaciones.txt, se creará uno nuevo al guardar.")
+        def cargar_calificaciones(self):
+            try:
+                with open("calificaciones.txt", "r", encoding="utf-8") as archivo:
+                    for linea in archivo:
+                        linea = linea.strip()
+                        if linea:
+                            partes = linea.split(":")
+                            if len(partes) != 4:
+                                print(f"Línea inválida ignorada: {linea}")
+                                continue
+                            codigo, cultura, proyeccion, entrevista = partes
+                            self.calificaciones.append({
+                                "Codigo": codigo,
+                                "Cultura": cultura,
+                                "Proyeccion": proyeccion,
+                                "Entrevista": entrevista
+                            })
+                print("Calificaciones importadas desde calificaciones.txt")
+            except FileNotFoundError:
+                print("No existe el archivo calificaciones.txt, se creará uno nuevo al guardar.")
 
     def guardar_calificaciones(self):
         with open("calificaciones.txt", "w", encoding="utf-8") as archivo:
             for datos in self.calificaciones:
-                archivo.write(f"{datos['Cultura']}:{datos['Proyeccion']}:{datos['Entrevista']}\n")
+                archivo.write(f"{datos['Codigo']}:{datos['Cultura']}:{datos['Proyeccion']}:{datos['Entrevista']}\n")
 
-    def agregar_calificacion(self, cultura, proyeccion, entrevista):
+    def agregar_calificacion(self, codigo_candidata, cultura, proyeccion, entrevista):
         self.calificaciones.append({
+            "Codigo": codigo_candidata,
             "Cultura": cultura,
             "Proyeccion": proyeccion,
             "Entrevista": entrevista
         })
         self.guardar_calificaciones()
-        print("Calificación agregada y guardada correctamente.")
+        print(f"Calificación para candidata {codigo_candidata} agregada correctamente.")
 
 
 
 class CandidatasV:
     def __init__(self):
+
+        self.candidatas_txt = CandidatasTxt()
+        self.jurados_txt = JuradosTxt()
+        self.calificaciones_txt = CalificacionesTxt()
+
+
         self.ventana = tk.Tk()
         self.ventana.title("Candidatas - Quetzaltenango")
         self.ventana.geometry("600x300")
@@ -173,11 +185,17 @@ class CandidatasV:
         municipio.pack()
 
         def guardar():
-            if not codigo.get() or not nombre.get() or not edad.get() or not institucion.get() or not municipio.get():
-                messagebox.showerror("Error", "Todos los campos son obligatorios.")
-                return
-            messagebox.showinfo("Éxito", f"Candidata '{nombre.get()}' registrada correctamente.")
-            win.destroy()
+                if not codigo.get() or not nombre.get() or not edad.get() or not institucion.get() or not municipio.get():
+                    messagebox.showerror("Error", "Todos los campos son obligatorios.")
+                    return
+
+                # Guardar en candidatas.txt
+                self.candidatas_txt.agregar_candidata(
+                    codigo.get(), nombre.get(), edad.get(), institucion.get(), municipio.get()
+                )
+
+                messagebox.showinfo("Éxito", f"Candidata '{nombre.get()}' registrada correctamente.")
+                win.destroy()
 
         tk.Button(win, text="Registrar", command=guardar).pack(pady=10)
         tk.Button(win, text="Regresar", command=win.destroy).pack(pady=10)
@@ -198,8 +216,14 @@ class CandidatasV:
 
         def guardar():
             if not IdJurado.get() or not NombreJ.get() or not profesion.get():
-                messagebox.showerror("Error", "Todos los campos son obligatorios.")
+                messagebox.showerror("Error",   "Todos los campos son obligatorios.")
                 return
+
+            self.jurados_txt.agregar_jurado(
+                IdJurado.get(),
+                NombreJ.get(),
+                profesion.get()
+            )
             messagebox.showinfo("Éxito", f"Jurado '{NombreJ.get()}' registrado correctamente.")
             win1.destroy()
 
@@ -208,10 +232,14 @@ class CandidatasV:
 
 
     def registrar_calificaciones(self):
-
         win2 = tk.Toplevel(self.ventana)
         win2.title("REGISTRO DE CANDIDATAS")
         win2.geometry("350x300")
+
+        tk.Label(win2, text="Codigo de candidata:").pack()
+        codigo = tk.Entry(win2)
+        codigo.pack()
+
         tk.Label(win2, text="Criterio Cultural General:").pack()
         culturaGen = tk.Entry(win2)
         culturaGen.pack()
@@ -223,9 +251,16 @@ class CandidatasV:
         Entrevista.pack()
 
         def guardarCal():
-            if not culturaGen.get() or not Proyeccion.get() or not Entrevista.get():
+            if not codigo.get() or not culturaGen.get() or not Proyeccion.get() or not Entrevista.get():
                 messagebox.showerror("Error", "Todos los campos son obligatorios.")
                 return
+
+            self.calificaciones_txt.agregar_calificacion(
+                codigo.get(),
+                culturaGen.get(),
+                Proyeccion.get(),
+                Entrevista.get()
+            )
             messagebox.showinfo("Éxito", f"Criterios registrados correctamente.")
             win2.destroy()
 
@@ -237,14 +272,48 @@ class CandidatasV:
         tk.Toplevel(self.ventana).title("Promedio")
 
     def ver_ranking(self):
-        print("Se abrió la ventana: Ranking Final")
-        tk.Toplevel(self.ventana).title("Ranking Final")
+            win3 = tk.Toplevel(self.ventana)
+            win3.title("Ranking Final")
+            win3.geometry("400x400")
 
+            resultados = []
+            for cal in self.calificaciones_txt.calificaciones:
+                codigo = cal["Codigo"]
+                if codigo in self.candidatas_txt.candidatas:
+                    candidata = self.candidatas_txt.candidatas[codigo]
 
-if __name__ == "__main__":
-    CandidatasV()
+                    try:
+                        cultura = int(cal["Cultura"])
+                        proyeccion = int(cal["Proyeccion"])
+                        entrevista = int(cal["Entrevista"])
+                    except ValueError:
+                        continue
 
+                    promedio = (cultura + proyeccion + entrevista) / 3
 
+                    resultados.append({
+                        "Codigo": codigo,
+                        "Nombre": candidata["Nombre"],
+                        "Edad": candidata["Edad"],
+                        "Institucion": candidata["Institucion"],
+                        "Municipio": candidata["Municipio"],
+                        "Promedio": promedio,
+                    })
+
+            # Ordenar de mayor a menor promedio
+            resultados.sort(key=lambda x: x["Promedio"], reverse=True)
+
+            tk.Label(win3, text="Ranking Final", font=("Arial", 14, "bold")).pack(pady=10)
+
+            if not resultados:
+                tk.Label(win3, text="No hay resultados registrados.", font=("Arial", 12)).pack(pady=20)
+                return
+
+            for i, r in enumerate(resultados, start=1):
+                texto = (f"{i}. {r['Nombre']} ({r['Codigo']}) - "
+                         f"{r['Edad']} años - {r['Institucion']} - {r['Municipio']} "
+                         f"| Promedio: {r['Promedio']:.2f}")
+                tk.Label(win3, text=texto, font=("Arial", 11), anchor="w").pack(fill="x", padx=10, pady=3)
 class Candidatas:
     def __init__(self,codigo,nombre,edad,institucionE,municipio):
         self.codigo = codigo
@@ -279,7 +348,10 @@ class RegistroCandidatas:
                 print("Error: El nombre no puede estar vacío.\n")
                 continue
             break
-
+        while True:
+            edad = input("Ingrese edad: ").strip()
+            if not edad:
+                print("Error: La edad no puede estar vacía.\n")
         while True:
             institucionE = input("Ingrese la institucion de la candidata: ").strip()
             if not institucionE:
@@ -295,7 +367,7 @@ class RegistroCandidatas:
             break
 
 
-        candidata = Candidatas(codigo,nombre,institucionE,municipio)
+        candidata = Candidatas(codigo,nombre,edad,institucionE,municipio)
         self.Candidatas[codigo] = candidata
         print("Candidata registrada automaticamente")
 
@@ -315,7 +387,7 @@ class RegistrarJurados:
     def __init__(self):
         self.Jurados = {}
 
-        def AgregarJurados(self):
+    def AgregarJurados(self):
             while True:
                 IdJurado = input("Ingrese Id del jurado: ").strip()
                 if not IdJurado:
@@ -380,9 +452,8 @@ class RegistrarPuntaje():
             break
 
         puntajes = Puntaje(culturaGen,Proyeccion,Entrevista)
-        self.Puntajes[culturaGen] = puntajes
+        self.Puntajes[len(self.Puntajes)+1] = puntajes
         print("Puntaje registrado exitosamente")
 
-
-
-
+if __name__ == "__main__":
+    CandidatasV()
