@@ -1,6 +1,113 @@
 import tkinter as tk
 from tkinter import messagebox
 
+class CandidatasTxt:
+    def __init__(self):
+        self.candidatas = {}
+        self.cargar_candidatas()
+
+    def cargar_candidatas(self):
+        try:
+            with open("candidatas.txt", "r", encoding="utf-8") as archivo:
+                for linea in archivo:
+                    linea = linea.strip()
+                    if linea:
+                        codigo, nombre, edad, institucion, municipio = linea.split(":")
+                        self.candidatas[codigo] = {
+                            "Nombre": nombre,
+                            "Edad": edad,
+                            "Institucion": institucion,
+                            "Municipio": municipio
+                        }
+            print("Candidatas importadas desde candidatas.txt")
+        except FileNotFoundError:
+            print("No existe el archivo candidatas.txt, se creará uno nuevo al guardar.")
+
+    def guardar_candidatas(self):
+        with open("candidatas.txt", "w", encoding="utf-8") as archivo:
+            for codigo, datos in self.candidatas.items():
+                archivo.write(f"{codigo}:{datos['Nombre']}:{datos['Edad']}:{datos['Institucion']}:{datos['Municipio']}\n")
+
+    def agregar_candidata(self, codigo, nombre, edad, institucion, municipio):
+        self.candidatas[codigo] = {
+            "Nombre": nombre,
+            "Edad": edad,
+            "Institucion": institucion,
+            "Municipio": municipio
+        }
+        self.guardar_candidatas()
+        print(f"Candidata con código {codigo} agregada y guardada correctamente.")
+
+class JuradosTxt:
+    def __init__(self):
+        self.jurados = {}
+        self.cargar_jurados()
+
+    def cargar_jurados(self):
+        try:
+            with open("jurados.txt", "r", encoding="utf-8") as archivo:
+                for linea in archivo:
+                    linea = linea.strip()
+                    if linea:
+                        id_jurado, nombre, profesion = linea.split(":")
+                        self.jurados[id_jurado] = {
+                            "Nombre": nombre,
+                            "Profesion": profesion
+                        }
+            print("Jurados importados desde jurados.txt")
+        except FileNotFoundError:
+            print("No existe el archivo jurados.txt, se creará uno nuevo al guardar.")
+
+    def guardar_jurados(self):
+        with open("jurados.txt", "w", encoding="utf-8") as archivo:
+            for id_jurado, datos in self.jurados.items():
+                archivo.write(f"{id_jurado}:{datos['Nombre']}:{datos['Profesion']}\n")
+
+    def agregar_jurado(self, id_jurado, nombre, profesion):
+        self.jurados[id_jurado] = {
+            "Nombre": nombre,
+            "Profesion": profesion
+        }
+        self.guardar_jurados()
+        print(f"Jurado con ID {id_jurado} agregado y guardado correctamente.")
+
+
+class CalificacionesTxt:
+    def __init__(self):
+        self.calificaciones = []
+        self.cargar_calificaciones()
+
+    def cargar_calificaciones(self):
+        try:
+            with open("calificaciones.txt", "r", encoding="utf-8") as archivo:
+                for linea in archivo:
+                    linea = linea.strip()
+                    if linea:
+                        cultura, proyeccion, entrevista = linea.split(":")
+                        self.calificaciones.append({
+                            "Cultura": cultura,
+                            "Proyeccion": proyeccion,
+                            "Entrevista": entrevista
+                        })
+            print("Calificaciones importadas desde calificaciones.txt")
+        except FileNotFoundError:
+            print("No existe el archivo calificaciones.txt, se creará uno nuevo al guardar.")
+
+    def guardar_calificaciones(self):
+        with open("calificaciones.txt", "w", encoding="utf-8") as archivo:
+            for datos in self.calificaciones:
+                archivo.write(f"{datos['Cultura']}:{datos['Proyeccion']}:{datos['Entrevista']}\n")
+
+    def agregar_calificacion(self, cultura, proyeccion, entrevista):
+        self.calificaciones.append({
+            "Cultura": cultura,
+            "Proyeccion": proyeccion,
+            "Entrevista": entrevista
+        })
+        self.guardar_calificaciones()
+        print("Calificación agregada y guardada correctamente.")
+
+
 class CandidatasV:
     def __init__(self):
         self.ventana = tk.Tk()
@@ -60,4 +167,3 @@ class CandidatasV:
 
         tk.Button(win, text="Registrar", command=guardar).pack(pady=10)
 
-    
