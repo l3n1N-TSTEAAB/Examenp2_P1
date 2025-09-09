@@ -119,10 +119,22 @@ class CandidatasV:
 
         tk.Label(
             self.ventana,
-            text="Sistema de Inscripción y Evaluación de Candidatas\n Reina de independencia 2025- Quetzaltenango",
-            font=("Arial", 12, "bold"),
+            text="Sistema de Inscripción y Evaluación de Candidatas\n",
+            font=("Arial", 15,"bold",),
+            foreground="blue",
+            relief="sunken",
+            borderwidth=5,
             justify="center"
         ).pack(pady=50)
+        tk.Label(
+            self.ventana,
+            text = "Reina de independencia 2025- Quetzaltenango",
+            font = ("Arial", 15, "bold",),
+            foreground = "red",
+            relief = "sunken",
+            borderwidth = 10,
+            justify = "center"
+        ).pack(pady=1)
 
 
         self.ventana.mainloop()
@@ -168,7 +180,7 @@ class CandidatasV:
             win.destroy()
 
         tk.Button(win, text="Registrar", command=guardar).pack(pady=10)
-
+        tk.Button(win, text="Regresar", command=win.destroy).pack(pady=10)
 
     def registrar_jurado(self):
         win1 = tk.Toplevel(self.ventana)
@@ -188,15 +200,14 @@ class CandidatasV:
             if not IdJurado.get() or not NombreJ.get() or not profesion.get():
                 messagebox.showerror("Error", "Todos los campos son obligatorios.")
                 return
-            messagebox.showinfo("Éxito", f"Candidata '{nombre.get()}' registrada correctamente.")
-            win.destroy()
+            messagebox.showinfo("Éxito", f"Jurado '{NombreJ.get()}' registrado correctamente.")
+            win1.destroy()
 
-        tk.Button(win, text="Registrar", command=guardar).pack(pady=10)
+        tk.Button(win1, text="Registrar", command=guardar).pack(pady=10)
+        tk.Button(win1, text="Regresar", command=win1.destroy).pack(pady=10)
 
 
     def registrar_calificaciones(self):
-        win2 = tk.Toplevel(self.ventana)
-        win2.title("Registrar Calificaciones")
 
         win2 = tk.Toplevel(self.ventana)
         win2.title("REGISTRO DE CANDIDATAS")
@@ -211,7 +222,15 @@ class CandidatasV:
         Entrevista = tk.Entry(win2)
         Entrevista.pack()
 
+        def guardarCal():
+            if not culturaGen.get() or not Proyeccion.get() or not Entrevista.get():
+                messagebox.showerror("Error", "Todos los campos son obligatorios.")
+                return
+            messagebox.showinfo("Éxito", f"Criterios registrados correctamente.")
+            win2.destroy()
 
+        tk.Button(win2, text="Registrar", command=guardarCal).pack(pady=10)
+        tk.Button(win2, text="Regresar", command=win2.destroy).pack(pady=10)
 
     def Calculo_Promedio(self):
         print("Se abrió la ventana: Ranking Final")
@@ -325,16 +344,11 @@ class RegistrarJurados:
             self.Jurados[IdJurado] = jurado
             print("Jurado registrado automaticamente")
 
-
-
 class Puntaje:
     def __init__(self,culturaGen,Proyeccion,Entrevista):
         self.culturaGen = culturaGen
         self.Proyeccion = Proyeccion
         self.Entrevista = Entrevista
-
-
-
 
 class RegistrarPuntaje():
     def __init__(self):
